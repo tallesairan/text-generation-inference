@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 from safetensors import safe_open, SafetensorError
+
 import torch
 from loguru import logger
 from huggingface_hub import hf_hub_download
@@ -131,8 +132,20 @@ class Weights:
                 torch.testing.assert_close(w2, w[0])
             g_idx = w[0]
 
-            bits, groupsize = self._get_gptq_params()
-            weight = (qweight, qzeros, scales, g_idx, bits, groupsize, False)
+            #bits, groupsize = self._get_gptq_params()
+
+            try:
+                bits = self.get_tensor("gptq_bits").item()
+                groupsize = self.get_tensor("gptq_groupsize").item()
+            except SafetensorError as e:
+                try:
+                    import os
+
+                    bits = int(os.getenv("GPTQ_BITS"))
+                    groupsize = int(os.getenv("GPTQ_GROUPSIZE"))
+                except Exception:
+                    raise e
+            weight = (qweight, qzeros, scales, g_idx, bits, groupsize)
         else:
             w = [self.get_sharded(f"{p}.weight", dim=0) for p in prefixes]
             weight = torch.cat(w, dim=dim)

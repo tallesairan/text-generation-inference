@@ -76,7 +76,18 @@ def _load_multi_mqa_gptq(
 
         g_idx = weights.get_tensor(f"{prefix}.c_attn.g_idx")
         g_idx = g_idx.to(device=weights.device)
-        bits, groupsize = weights._get_gptq_params()
+
+        try:
+            bits = weights.get_tensor("gptq_bits").item()
+            groupsize = weights.get_tensor("gptq_groupsize").item()
+        except SafetensorError as e:
+            try:
+                import os
+
+                bits = int(os.getenv("GPTQ_BITS"))
+                groupsize = int(os.getenv("GPTQ_GROUPSIZE"))
+            except Exception:
+                raise e
 
         from text_generation_server.utils.layers import HAS_EXLLAMA
 
