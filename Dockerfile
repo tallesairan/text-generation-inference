@@ -155,6 +155,8 @@ WORKDIR /usr/src
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         libssl-dev \
+        wget \
+        curl \
         ca-certificates \
         make \
         && rm -rf /var/lib/apt/lists/*
