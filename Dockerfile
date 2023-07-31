@@ -185,6 +185,14 @@ RUN pip install einops --no-cache-dir
 COPY proto proto
 COPY server server
 COPY server/Makefile server/Makefile
+
+# Install AutoGPTQ
+RUN cd server && \
+    wget https://github.com/PanQiWei/AutoGPTQ/releases/download/v0.3.2/auto_gptq-0.3.2+cu118-cp39-cp39-linux_x86_64.whl && \
+    pip install auto_gptq-0.3.2+cu118-cp39-cp39-linux_x86_64.whl
+
+WORKDIR /usr/src
+
 RUN cd server && \
     make gen-server && \
     pip install -r requirements.txt && \

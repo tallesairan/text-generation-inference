@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  text-generation-inference:
+    #image: ghcr.io/huggingface/text-generation-inference:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    shm_size: 1g
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+      - MODEL_ID=${MODEL_ID}
+      - NUM_SHARD=1
+    volumes:
+      - /opt/text-generation-dev/config/models:/data
+    command: "--model-id ${MODEL_ID} --num-shard 1 --quantize gptq --trust-remote-code"
+    deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                device_ids: ['0']
+                capabilities: [gpu]    

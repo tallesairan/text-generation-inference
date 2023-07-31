@@ -6,6 +6,8 @@ from opentelemetry import trace
 from transformers import AutoTokenizer, AutoModelForCausalLM, PreTrainedTokenizerBase
 from typing import Optional, Tuple, List, Type, Dict
 
+from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
+
 from text_generation_server.models import Model
 from text_generation_server.models.types import (
     Batch,
@@ -474,16 +476,18 @@ class CausalLM(Model):
             truncation_side="left",
             trust_remote_code=trust_remote_code,
         )
-        model = AutoModelForCausalLM.from_pretrained(
-            model_id,
-            revision=revision,
-            torch_dtype=dtype,
-            device_map="auto"
-            if torch.cuda.is_available() and torch.cuda.device_count() > 1
-            else None,
-            load_in_8bit=quantize == "bitsandbytes",
-            trust_remote_code=trust_remote_code,
-        )
+
+        model = AutoGPTQForCausalLM.from_quantized(model_id, device_map="auto", use_safetensors=True).half()
+        # model = AutoModelForCausalLM.from_pretrained(
+        #     model_id,
+        #     revision=revision,
+        #     torch_dtype=dtype,
+        #     device_map="auto"
+        #     if torch.cuda.is_available() and torch.cuda.device_count() > 1
+        #     else None,
+        #     load_in_8bit=quantize == "bitsandbytes",
+        #     trust_remote_code=trust_remote_code,
+        # )
         if torch.cuda.is_available() and torch.cuda.device_count() == 1:
             model = model.cuda()
 
